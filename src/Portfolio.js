@@ -1,4 +1,13 @@
 import { useState, useEffect } from "react";
+import FlutterLogo from "./assets/flutter.png";
+import DartLogo from "./assets/dart.png";
+import NodeLogo from "./assets/node.png";
+import ExpressLogo from "./assets/express.png";
+import JavaScriptLogo from "./assets/js.png";
+import PythonLogo from "./assets/python.png";
+import ReactLogo from "./assets/react.png";
+import JiraLogo from "./assets/jira.png";
+
 import {
   Moon,
   Sun,
@@ -7,18 +16,104 @@ import {
   Mail,
   Menu,
   X,
-  Server,
   GitBranch,
-  Trello,
+  Award,
+  Users,
+  Code,
+  GraduationCap,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Portfolio() {
+  function useLocalStorage(key, initialValue) {
+    const [value, setValue] = useState(() => {
+      const savedValue = localStorage.getItem(key);
+      if (savedValue != null) {
+        try {
+          return JSON.parse(savedValue);
+        } catch (e) {
+          // If it's not JSON, return the string directly
+          return savedValue;
+        }
+      }
+
+      if (typeof initialValue === "function") {
+        return initialValue();
+      } else {
+        return initialValue;
+      }
+    });
+
+    useEffect(() => {
+      // Save either as a string or as JSON if it's not a string
+      if (typeof value === "string") {
+        localStorage.setItem(key, value);
+      } else {
+        localStorage.setItem(key, JSON.stringify(value));
+      }
+    }, [key, value]);
+
+    return [value, setValue];
+  }
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("");
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useLocalStorage("theme", false); // use useLocalStorage for theme
+  const [expandedItem, setExpandedItem] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  // useEffect(() => {
+  //   const savedTheme = localStorage.getItem("theme");
+  //   if (savedTheme) {
+  //     setIsDarkMode(savedTheme === "dark");
+  //   }
+  // }, []);
+
+  // // Save theme to localStorage whenever it changes
+  // useEffect(() => {
+  //   localStorage.setItem("theme", isDarkMode ? "dark" : "light");
+  // }, [isDarkMode]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("https://formspree.io/f/xwpejjyb", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          name: e.target.name.value,
+          email: e.target.email.value,
+          message: e.target.message.value,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("Email sent successfully!");
+        e.target.reset();
+      } else {
+        toast.error("Failed to send email. Please try again.");
+      }
+    } catch (error) {
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
+
+  const toggleExpand = (index) => {
+    setExpandedItem(expandedItem === index ? null : index);
+  };
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
@@ -51,6 +146,55 @@ export default function Portfolio() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const educationItems = [
+    {
+      title: "Bachelor of Science in Computer Science",
+      institution: "Princess Sumaya University for Technology",
+      year: "2018 - 2023",
+      // description:
+      //   "Graduated with honors, focusing on software engineering and mobile development.",
+      activities: [
+        {
+          icon: Users,
+          text: "Use to be a member of the ACM for competitive programming",
+        },
+        {
+          icon: Award,
+          text: "Gained certification in mobile development",
+        },
+        {
+          icon: GraduationCap,
+          text: "Volunteered as a peer tutor for introductory programming courses",
+        },
+      ],
+    },
+    {
+      title: "Mobile App Development Certification",
+      institution: "Udemy",
+      year: "2021",
+      description:
+        "Completed an intensive program focusing on Flutter development and best practices.",
+      activities: [
+        {
+          icon: Code,
+          text: "Developed 3 fully functional Flutter apps as part of the certification",
+        },
+        {
+          icon: Code,
+          text: "Learned Bloc & Cubit, Provider, as well as Riverpod for state management solutions",
+        },
+        {
+          icon: Code,
+          text: "Dived deep into caching with Hive",
+        },
+        {
+          icon: Code,
+          text: "Built Responsive & Adaptive mobile apps",
+        },
+      ],
+    },
+  ];
+
   return (
     <div
       className={`min-h-screen ${
@@ -61,21 +205,31 @@ export default function Portfolio() {
         className={`fixed top-0 left-0 right-0 z-50 ${
           isDarkMode ? "bg-gray-800" : "bg-white"
         } bg-opacity-90 backdrop-blur-sm transition-colors duration-300`}
+        style={{
+          backgroundImage: `radial-gradient(${
+            isDarkMode ? "#ffffff10" : "#00000010"
+          } 1px, transparent 1px)`,
+          backgroundSize: "20px 20px",
+        }}
       >
         <nav className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <a
-              href="#"
+            <button
+              href="#hero"
               className={`text-2xl font-bold ${
                 isDarkMode ? "text-white" : "text-gray-900"
               }`}
-              onClick={() => scrollToSection("hero")}
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection("hero");
+              }}
             >
               Yazan Farrah
-            </a>
+            </button>
+
             <div className="hidden md:flex items-center space-x-6">
               {["about", "skills", "education", "contact"].map((section) => (
-                <a
+                <button
                   key={section}
                   href={`#${section}`}
                   className={`hover:text-blue-500 transition-colors ${
@@ -87,7 +241,7 @@ export default function Portfolio() {
                   }}
                 >
                   {section.charAt(0).toUpperCase() + section.slice(1)}
-                </a>
+                </button>
               ))}
               <button
                 onClick={toggleTheme}
@@ -117,7 +271,7 @@ export default function Portfolio() {
             } py-2`}
           >
             {["about", "skills", "education", "contact"].map((section) => (
-              <a
+              <button
                 key={section}
                 href={`#${section}`}
                 className={`block px-6 py-2 hover:bg-blue-500 hover:text-white transition-colors`}
@@ -127,7 +281,7 @@ export default function Portfolio() {
                 }}
               >
                 {section.charAt(0).toUpperCase() + section.slice(1)}
-              </a>
+              </button>
             ))}
             <button
               onClick={toggleTheme}
@@ -149,9 +303,10 @@ export default function Portfolio() {
           <div className="text-center">
             <div className="mb-8">
               <img
-                src="/placeholder.svg?height=200&width=200"
+                src="/profile_image.jpeg"
                 alt="Yazan Farrah"
                 className="rounded-full w-48 h-48 mx-auto shadow-lg"
+                style={{ objectFit: "cover", objectPosition: "top" }}
               />
             </div>
             <h1
@@ -162,9 +317,9 @@ export default function Portfolio() {
               Yazan Farrah
             </h1>
             <p className="text-2xl md:text-3xl text-blue-500 mb-8">
-              Senior Flutter Engineer
+              Senior Software Engineer
             </p>
-            <a
+            <button
               href="#contact"
               className={`bg-blue-500 text-white font-bold py-3 px-6 rounded-full text-lg hover:bg-blue-600 transition-colors duration-300 inline-block`}
               onClick={(e) => {
@@ -173,7 +328,7 @@ export default function Portfolio() {
               }}
             >
               Get in Touch
-            </a>
+            </button>
           </div>
         </section>
 
@@ -205,9 +360,7 @@ export default function Portfolio() {
                 When I'm not crafting pixel-perfect UIs or optimizing app
                 performance, you can find me exploring the latest in mobile
                 development, contributing to open-source projects, or mentoring
-                aspiring developers. I'm always excited to take on new
-                challenges and push the boundaries of what's possible with
-                Flutter.
+                aspiring developers.
               </p>
             </div>
           </div>
@@ -227,15 +380,15 @@ export default function Portfolio() {
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
               {[
-                { name: "Flutter", icon: Server },
-                { name: "Dart", icon: Server },
-                { name: "Node.js", icon: Server },
-                { name: "Express.js", icon: Server },
-                { name: "JavaScript", icon: Server },
-                { name: "Python", icon: Server },
-                { name: "React", icon: Server },
+                { name: "Flutter", icon: FlutterLogo },
+                { name: "Dart", icon: DartLogo },
+                { name: "Node.js", icon: NodeLogo },
+                { name: "Express.js", icon: ExpressLogo },
+                { name: "JavaScript", icon: JavaScriptLogo },
+                { name: "Python", icon: PythonLogo },
+                { name: "React", icon: ReactLogo },
                 { name: "Git", icon: GitBranch },
-                { name: "Jira", icon: Trello },
+                { name: "Jira", icon: JiraLogo },
               ].map((skill) => (
                 <div
                   key={skill.name}
@@ -243,7 +396,15 @@ export default function Portfolio() {
                     isDarkMode ? "bg-gray-800" : "bg-white"
                   } rounded-lg p-6 text-center shadow-lg transform hover:scale-105 transition-all duration-300`}
                 >
-                  <skill.icon className="w-12 h-12 mx-auto mb-4 text-blue-500" />
+                  {typeof skill.icon === "string" ? (
+                    <img
+                      src={skill.icon}
+                      alt={skill.name}
+                      className="w-18 h-16 mx-auto mb-4"
+                    />
+                  ) : (
+                    <skill.icon className="w-12 h-12 mx-auto mb-4 text-blue-500" />
+                  )}
                   <span
                     className={`text-lg font-semibold ${
                       isDarkMode ? "text-white" : "text-gray-900"
@@ -269,56 +430,86 @@ export default function Portfolio() {
             >
               Education
             </h2>
-            <div className="flex flex-col md:flex-row items-center justify-between">
-              <div className="md:w-1/3 mb-8 md:mb-0">
-                <img
-                  src="/psut.png "
-                  style={{height:250 ,width:300}}
-                  alt="Princess Sumaya University for Technology"
-                  className="rounded-lg shadow-lg"
-                />
-              </div>
-              <div className="md:w-2/3 md:pl-8">
-                <h3
-                  className={`text-2xl font-bold mb-4 ${
-                    isDarkMode ? "text-white" : "text-gray-900"
-                  }`}
+            <div className="space-y-6">
+              {educationItems.map((item, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className={`${
+                    isDarkMode ? "bg-gray-700" : "bg-gray-100"
+                  } rounded-lg overflow-hidden shadow-lg`}
                 >
-                  Princess Sumaya University for Technology
-                </h3>
-                <p
-                  className={`text-lg mb-4 ${
-                    isDarkMode ? "text-gray-300" : "text-gray-700"
-                  }`}
-                >
-                  Bachelor of Science in Computer Science
-                </p>
-                <h4
-                  className={`text-xl font-semibold mb-2 ${
-                    isDarkMode ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  Activities and Societies:
-                </h4>
-                <ul
-                  className={`list-disc list-inside ${
-                    isDarkMode ? "text-gray-300" : "text-gray-700"
-                  }`}
-                >
-                  <li>Member of the Computer Science Student Association</li>
-                  <li>
-                    Participated in multiple hackathons and coding competitions
-                  </li>
-                  <li>
-                    Volunteered as a peer tutor for introductory programming
-                    courses
-                  </li>
-                  <li>
-                    Contributed to the university's open-source projects
-                    initiative
-                  </li>
-                </ul>
-              </div>
+                  <div
+                    className={`p-6 cursor-pointer ${
+                      isDarkMode ? "hover:bg-gray-600" : "hover:bg-gray-200"
+                    } transition-colors duration-300`}
+                    onClick={() => toggleExpand(index)}
+                  >
+                    <div className="flex justify-between items-center">
+                      <h3
+                        className={`text-2xl font-bold ${
+                          isDarkMode ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        {item.title}
+                      </h3>
+                      {expandedItem === index ? (
+                        <ChevronUp className="w-6 h-6 text-blue-500" />
+                      ) : (
+                        <ChevronDown className="w-6 h-6 text-blue-500" />
+                      )}
+                    </div>
+                    <p
+                      className={`text-lg mt-2 ${
+                        isDarkMode ? "text-gray-300" : "text-gray-600"
+                      }`}
+                    >
+                      {item.institution} | {item.year}
+                    </p>
+                  </div>
+                  <AnimatePresence>
+                    {expandedItem === index && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className={`px-6 pb-6 ${
+                          isDarkMode ? "text-gray-300" : "text-gray-600"
+                        }`}
+                      >
+                        <p className="mb-4">{item.description}</p>
+                        <h4
+                          className={`text-xl font-semibold mb-2 ${
+                            isDarkMode ? "text-white" : "text-gray-900"
+                          }`}
+                        >
+                          Activities and Achievements:
+                        </h4>
+                        <ul className="space-y-2">
+                          {item.activities.map((activity, actIndex) => (
+                            <motion.li
+                              key={actIndex}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{
+                                duration: 0.3,
+                                delay: actIndex * 0.1,
+                              }}
+                              className="flex items-center"
+                            >
+                              <activity.icon className="w-5 h-5 mr-2 text-blue-500" />
+                              <span>{activity.text}</span>
+                            </motion.li>
+                          ))}
+                        </ul>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ))}
             </div>
           </div>
         </section>
@@ -347,21 +538,25 @@ export default function Portfolio() {
                 </p>
                 <div className="flex space-x-4 mb-4">
                   <a
-                    href="#"
+                    href="https://github.com/YazanFarrah"
                     className="text-blue-500 hover:text-blue-600 transition-colors"
                     aria-label="GitHub"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <Github size={32} />
                   </a>
                   <a
-                    href="#"
+                    href="https://www.linkedin.com/in/yazan-farrah-795216227/"
                     className="text-blue-500 hover:text-blue-600 transition-colors"
                     aria-label="LinkedIn"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <Linkedin size={32} />
                   </a>
                   <a
-                    href="mailto:yazan.farrah@example.com"
+                    href="mailto:yazanfarrah@gmail.com"
                     className="text-blue-500 hover:text-blue-600 transition-colors"
                     aria-label="Email"
                   >
@@ -377,7 +572,9 @@ export default function Portfolio() {
                   possible.
                 </p>
               </div>
+
               <form
+                onSubmit={handleSubmit}
                 className={`w-full md:w-1/2 ${
                   isDarkMode ? "bg-gray-800" : "bg-white"
                 } rounded-lg p-8 shadow-lg`}
@@ -449,8 +646,36 @@ export default function Portfolio() {
                   Send Message
                 </button>
               </form>
+              {isLoading && (
+                <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
+                  <div className="flex items-center justify-center p-4">
+                    <svg
+                      className="animate-spin h-12 w-12 text-blue-500"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        d="M4 12a8 8 0 1116 0 8 8 0 01-16 0"
+                      ></path>
+                    </svg>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
+          <ToastContainer />
         </section>
       </main>
 
